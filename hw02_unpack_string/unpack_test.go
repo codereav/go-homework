@@ -1,9 +1,9 @@
-package hw02unpackstring
+package hw02unpackstring_test
 
 import (
-	"errors"
 	"testing"
 
+	"github.com/codereav/go-homework/hw02_unpack_string"
 	"github.com/stretchr/testify/require"
 )
 
@@ -16,17 +16,23 @@ func TestUnpack(t *testing.T) {
 		{input: "abccd", expected: "abccd"},
 		{input: "", expected: ""},
 		{input: "aaa0b", expected: "aab"},
-		// uncomment if task with asterisk completed
-		// {input: `qwe\4\5`, expected: `qwe45`},
-		// {input: `qwe\45`, expected: `qwe44444`},
-		// {input: `qwe\\5`, expected: `qwe\\\\\`},
-		// {input: `qwe\\\3`, expected: `qwe\3`},
+
+		{input: `qwe\4\5`, expected: `qwe45`},
+		{input: `qwe\45`, expected: `qwe44444`},
+		{input: `qwe\\5`, expected: `qwe\\\\\`},
+		{input: `qwe\\\3`, expected: `qwe\3`},
+
+		{input: `О 2тус!!!\\\3`, expected: `О  тус!!!\3`},
+		{input: `№;%!"№%:?*()_=а3\\\3`, expected: `№;%!"№%:?*()_=ааа\3`},
+		{input: `\\№\\\\\\0`, expected: `\№\\`},
+		{input: `\\Капсом Т\\ОЖ3Е Можно :)\0`, expected: `\Капсом Т\ОЖЖЖЕ Можно :)0`},
+		{input: `\\♪2◕‿◕5`, expected: `\♪♪◕‿◕◕◕◕◕`},
 	}
 
 	for _, tc := range tests {
 		tc := tc
 		t.Run(tc.input, func(t *testing.T) {
-			result, err := Unpack(tc.input)
+			result, err := hw02unpackstring.Unpack(tc.input)
 			require.NoError(t, err)
 			require.Equal(t, tc.expected, result)
 		})
@@ -34,12 +40,12 @@ func TestUnpack(t *testing.T) {
 }
 
 func TestUnpackInvalidString(t *testing.T) {
-	invalidStrings := []string{"3abc", "45", "aaa10b"}
+	invalidStrings := []string{"3abc", "45", "aaa10b", "zxcz123", "aaa10b", "zz43", "456", "\\dd"}
 	for _, tc := range invalidStrings {
 		tc := tc
 		t.Run(tc, func(t *testing.T) {
-			_, err := Unpack(tc)
-			require.Truef(t, errors.Is(err, ErrInvalidString), "actual error %q", err)
+			_, err := hw02unpackstring.Unpack(tc)
+			require.Error(t, err, "actual error %q", err)
 		})
 	}
 }
