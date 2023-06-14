@@ -1,9 +1,8 @@
-package hw02unpackstring_test
+package hw02unpackstring
 
 import (
 	"testing"
 
-	"github.com/codereav/go-homework/hw02_unpack_string"
 	"github.com/stretchr/testify/require"
 )
 
@@ -32,7 +31,7 @@ func TestUnpack(t *testing.T) {
 	for _, tc := range tests {
 		tc := tc
 		t.Run(tc.input, func(t *testing.T) {
-			result, err := hw02unpackstring.Unpack(tc.input)
+			result, err := Unpack(tc.input)
 			require.NoError(t, err)
 			require.Equal(t, tc.expected, result)
 		})
@@ -44,7 +43,7 @@ func TestUnpackInvalidString(t *testing.T) {
 	for _, tc := range invalidStrings {
 		tc := tc
 		t.Run(tc, func(t *testing.T) {
-			_, err := hw02unpackstring.Unpack(tc)
+			_, err := Unpack(tc)
 			require.Error(t, err, "actual error %q", err)
 		})
 	}
