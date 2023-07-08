@@ -37,7 +37,6 @@ func (c *lruCache) Set(key Key, value interface{}) bool {
 
 		li := c.queue.PushFront(&ItemValue{Key: key, Value: value}) // Добавляем значение в список
 		c.items[key] = li                                           // Добавляем/обновляем в map
-
 	}
 	c.mutex.Unlock() // Разблокируем c.items[key]
 	return wasInCache

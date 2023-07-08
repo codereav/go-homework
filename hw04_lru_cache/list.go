@@ -35,7 +35,7 @@ func (l *list) Back() *ListItem {
 }
 
 func (l *list) PushFront(v interface{}) *ListItem {
-	var li = &ListItem{Value: v}
+	li := &ListItem{Value: v}
 	if l.front == nil {
 		l.front = li
 		l.back = li
@@ -50,7 +50,7 @@ func (l *list) PushFront(v interface{}) *ListItem {
 }
 
 func (l *list) PushBack(v interface{}) *ListItem {
-	var li = &ListItem{Value: v}
+	li := &ListItem{Value: v}
 	if l.front == nil {
 		l.front = li
 		l.back = li
@@ -65,59 +65,54 @@ func (l *list) PushBack(v interface{}) *ListItem {
 }
 
 func (l *list) Remove(i *ListItem) {
-	if l.len == 0 {
+	switch {
+	case l.len == 0 || i == nil:
 		return
-	}
-	if i != nil {
-		if l.len == 1 {
-			// Если список из одного элемента и это наш элемент - обнуляем список
-			if i == l.front {
-				l.front = nil
-				l.back = nil
-			} else {
-				return
-			}
-		} else if i == l.front {
-			// Если указатель равен первому элементу
-			l.front = i.Next
-			l.front.Prev = nil
-		} else if i == l.back {
-			// Если указатель равен последнему элементу
-			l.back = i.Prev
-			l.back.Next = nil
+	case l.len == 1:
+		// Если список из одного элемента и это наш элемент - обнуляем список
+		if i == l.front {
+			l.front = nil
+			l.back = nil
 		} else {
-			// Изменяем связи соседних элементов
-			i.Prev.Next = i.Next
-			i.Next.Prev = i.Prev
+			return
 		}
-		l.len--
-
-		return
+	case i == l.front:
+		// Если указатель равен первому элементу
+		l.front = i.Next
+		l.front.Prev = nil
+	case i == l.back:
+		// Если указатель равен последнему элементу
+		l.back = i.Prev
+		l.back.Next = nil
+	default:
+		// Изменяем связи соседних элементов
+		i.Prev.Next = i.Next
+		i.Next.Prev = i.Prev
 	}
+	l.len--
 }
 
 func (l *list) MoveToFront(i *ListItem) {
-	if i != nil {
-		if l.len == 1 || i == l.front {
-			// Если список из одного элемента или это и так первый элемент - ничего не делаем
-			return
-		} else if i == l.back {
-			// Если элемент - последний в списке
-			i.Prev.Next = nil
-			l.back = i.Prev
-		} else {
-			// Изменяем связи соседних элементов
-			i.Prev.Next = i.Next
-			i.Next.Prev = i.Prev
-		}
-		// Перемещаем текущий элемент в начало списка
-		i.Prev = nil
-		i.Next = l.front
-		l.front.Prev = i
-		l.front = i
-
+	switch {
+	case i == nil:
 		return
+	case l.len == 1 || i == l.front:
+		// Если список из одного элемента или это и так первый элемент - ничего не делаем
+		return
+	case i == l.back:
+		// Если элемент - последний в списке
+		i.Prev.Next = nil
+		l.back = i.Prev
+	default:
+		// Изменяем связи соседних элементов
+		i.Prev.Next = i.Next
+		i.Next.Prev = i.Prev
 	}
+	// Перемещаем текущий элемент в начало списка
+	i.Prev = nil
+	i.Next = l.front
+	l.front.Prev = i
+	l.front = i
 }
 
 func NewList() List {
