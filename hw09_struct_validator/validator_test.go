@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 type UserRole string
@@ -34,6 +36,12 @@ type (
 		Code int    `validate:"in:200,404,500"`
 		Body string `json:"omitempty"`
 	}
+	Custom1 struct {
+		Any int `validate:"incorrectRule:anything"`
+	}
+	Custom2 struct {
+		Any int `validate:"regexp"`
+	}
 )
 
 func TestValidate(t *testing.T) {
@@ -42,19 +50,85 @@ func TestValidate(t *testing.T) {
 		expectedErr error
 	}{
 		{
-			// Place your code here.
+			in: User{
+				ID:     "123412341234123412341234123412341234",
+				Age:    123,
+				Phones: []string{"123123", "12345678910"},
+			},
+			expectedErr: ValidationErrors{
+				ValidationError{
+					Field: "Age",
+					Err:   ErrIncorrectMaxValue,
+					Param: "50",
+				},
+				ValidationError{
+					Field: "Email",
+					Err:   ErrIncorrectValueByRegexp,
+					Param: "^\\w+@\\w+\\.\\w+$",
+				},
+				ValidationError{
+					Field: "Role",
+					Err:   ErrUnsupportedType,
+				},
+				ValidationError{
+					Field: "Phones",
+					Err:   ErrIncorrectLength,
+					Param: "11",
+				},
+			},
 		},
-		// ...
-		// Place your code here.
+		{
+			in: App{
+				Version: "versi",
+			},
+			expectedErr: ValidationErrors(nil),
+		},
+		{
+			in:          Token{},
+			expectedErr: ValidationErrors(nil),
+		},
+		{
+			in: Response{
+				Code: 444,
+				Body: "anything",
+			},
+			expectedErr: ValidationErrors{
+				ValidationError{
+					Field: "Code",
+					Err:   ErrIncorrectValueOneOf,
+					Param: "200,404,500",
+				},
+			},
+		},
+		{
+			in: Custom1{},
+			expectedErr: ValidationErrors{
+				ValidationError{
+					Field: "Any",
+					Err:   ErrUnsupportedRule,
+					Param: "anything",
+				},
+			},
+		},
+		{
+			in: Custom2{},
+			expectedErr: ValidationErrors{
+				ValidationError{
+					Field: "Any",
+					Err:   ErrIncorrectValidationRule,
+					Param: "",
+				},
+			},
+		},
 	}
 
 	for i, tt := range tests {
 		t.Run(fmt.Sprintf("case %d", i), func(t *testing.T) {
 			tt := tt
 			t.Parallel()
-
-			// Place your code here.
-			_ = tt
+			err := Validate(tt.in)
+			fmt.Println(err)
+			require.Equal(t, tt.expectedErr, err)
 		})
 	}
 }
