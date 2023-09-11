@@ -10,9 +10,9 @@ import (
 )
 
 type ValidationError struct {
-	Field string
-	Err   error
-	Param string // Параметр для подстановки в текст ошибки
+	Field  string
+	Err    error
+	Params []interface{} // Параметр для подстановки в текст ошибки
 }
 
 type ValidationErrors []ValidationError
@@ -20,27 +20,36 @@ type ValidationErrors []ValidationError
 func (v ValidationErrors) Error() string {
 	err := ""
 	for _, val := range v {
-		err = err + val.Field + ": " + fmt.Sprintf(val.Err.Error(), val.Param) + "\n"
+		err = err + val.Field + ": " + fmt.Sprintf(val.Err.Error(), val.Params...) + "\n"
 	}
 
 	return err
 }
 
-var allowedTypes = map[string]byte{
-	reflect.Int.String():    1,
-	reflect.String.String(): 1,
+var (
+	minLengthRule = "min"
+	maxLengthRule = "max"
+	lengthRule    = "len"
+	inArrayRule   = "in"
+	regexpRule    = "regexp"
+)
+
+var allowedTypesWithRules = map[string][]string{
+	reflect.Int.String():    {minLengthRule, maxLengthRule, lengthRule, inArrayRule},
+	reflect.String.String(): {lengthRule, regexpRule, inArrayRule},
 }
 
 var (
-	ErrUnsupportedType         = errors.New("type is not supported by validator")
-	ErrUnsupportedRule         = errors.New("rule is unsupported")
+	ErrUnsupportedType         = errors.New("type %s is not supported by validator")
+	ErrUnsupportedRule         = errors.New("rule %s is unsupported")
 	ErrIncorrectValidationRule = errors.New("unable to parse validation rule")
 	ErrIncorrectRuleValue      = errors.New("unable to parse rule value")
 )
 
 var (
-	ErrIncorrectMinValue = errors.New("value must be more than %s")
-	ErrIncorrectMaxValue = errors.New("value must be less than %s")
+	ErrIncorrectMinValue       = errors.New("value must be more than %s")
+	ErrIncorrectMaxValue       = errors.New("value must be less than %s")
+	ErrIncompatibleRuleForType = errors.New("incompatible rule %s for type %s")
 )
 
 var (
@@ -51,7 +60,7 @@ var (
 var ErrIncorrectLength = errors.New("value length must be equal %s")
 
 func Validate(v interface{}) error {
-	var errors ValidationErrors
+	var errs ValidationErrors
 
 	t := reflect.ValueOf(v)
 	// Проверяем, что входящий параметр - структура
@@ -77,10 +86,10 @@ func Validate(v interface{}) error {
 		}
 
 		// Проверяем, поддерживается ли тип поля
-		if _, ok := allowedTypes[curType]; !ok {
-			errors = append(
-				errors,
-				ValidationError{Field: field.Name, Err: ErrUnsupportedType},
+		if _, ok := allowedTypesWithRules[curType]; !ok {
+			errs = append(
+				errs,
+				ValidationError{Field: field.Name, Err: ErrUnsupportedType, Params: []interface{}{curType}},
 			)
 			continue
 		}
@@ -88,48 +97,73 @@ func Validate(v interface{}) error {
 		// Собираем все правила для поля
 		rules := strings.Split(tag, "|")
 
-		for _, rule := range rules {
-			// Правило должно состоять из двух частей: тип и значение
-			ruleData := strings.SplitN(rule, ":", 2)
-			if len(ruleData) != 2 {
-				errors = append(
-					errors,
-					ValidationError{Field: field.Name, Err: ErrIncorrectValidationRule},
-				)
-				continue
-			}
-			ruleType := ruleData[0]
-			ruleValue := ruleData[1]
+		errs = processRules(errs, rules, field, curType, t)
+	}
 
-			// Если это слайс - валидируем содержимое этого слайса
-			if field.Type.Kind() == reflect.Slice {
-				for i := 0; i < t.FieldByName(field.Name).Len(); i++ {
-					err := processValidation(ruleType, ruleValue, t.FieldByName(field.Name).Index(i))
-					if err != nil {
-						errors = append(
-							errors,
-							ValidationError{Field: field.Name, Err: err, Param: ruleValue},
-						)
-					}
-				}
-			} else {
-				err := processValidation(ruleType, ruleValue, t.FieldByName(field.Name))
+	return errs
+}
+
+func processRules(
+	errs ValidationErrors,
+	rules []string,
+	field reflect.StructField,
+	curType string,
+	t reflect.Value,
+) ValidationErrors {
+	for _, rule := range rules {
+		// Правило должно состоять из двух частей: тип и значение
+		ruleData := strings.SplitN(rule, ":", 2)
+		if len(ruleData) != 2 {
+			errs = append(
+				errs,
+				ValidationError{Field: field.Name, Err: ErrIncorrectValidationRule},
+			)
+			continue
+		}
+		ruleType := ruleData[0]
+		ruleValue := ruleData[1]
+
+		// Проверяем, что правило допускается для этого типа поля
+		if !inArray(ruleType, allowedTypesWithRules[curType]) {
+			errs = append(
+				errs,
+				ValidationError{
+					Field:  field.Name,
+					Err:    ErrIncompatibleRuleForType,
+					Params: []interface{}{ruleType, curType},
+				},
+			)
+			continue
+		}
+
+		// Если это слайс - валидируем содержимое этого слайса
+		if field.Type.Kind() == reflect.Slice {
+			for i := 0; i < t.FieldByName(field.Name).Len(); i++ {
+				err := processValidation(ruleType, ruleValue, t.FieldByName(field.Name).Index(i))
 				if err != nil {
-					errors = append(
-						errors,
-						ValidationError{Field: field.Name, Err: err, Param: ruleValue},
+					errs = append(
+						errs,
+						ValidationError{Field: field.Name, Err: err, Params: []interface{}{ruleValue}},
 					)
 				}
+			}
+		} else {
+			err := processValidation(ruleType, ruleValue, t.FieldByName(field.Name))
+			if err != nil {
+				errs = append(
+					errs,
+					ValidationError{Field: field.Name, Err: err, Params: []interface{}{ruleValue}},
+				)
 			}
 		}
 	}
 
-	return errors
+	return errs
 }
 
 func processValidation(ruleType string, ruleValue string, value reflect.Value) error {
 	switch ruleType {
-	case "min":
+	case minLengthRule:
 		formattedRuleValue, err := strconv.Atoi(ruleValue)
 		if err != nil {
 			return ErrIncorrectRuleValue
@@ -137,7 +171,7 @@ func processValidation(ruleType string, ruleValue string, value reflect.Value) e
 		if value.Int() < int64(formattedRuleValue) {
 			return ErrIncorrectMinValue
 		}
-	case "max":
+	case maxLengthRule:
 		formattedRuleValue, err := strconv.Atoi(ruleValue)
 		if err != nil {
 			return ErrIncorrectRuleValue
@@ -145,7 +179,7 @@ func processValidation(ruleType string, ruleValue string, value reflect.Value) e
 		if value.Int() > int64(formattedRuleValue) {
 			return ErrIncorrectMaxValue
 		}
-	case "len":
+	case lengthRule:
 		formattedRuleValue, err := strconv.Atoi(ruleValue)
 		if err != nil {
 			return ErrIncorrectRuleValue
@@ -153,7 +187,7 @@ func processValidation(ruleType string, ruleValue string, value reflect.Value) e
 		if value.Len() != formattedRuleValue {
 			return ErrIncorrectLength
 		}
-	case "regexp":
+	case regexpRule:
 		regexp, err := regexp.Compile(ruleValue)
 		if err != nil {
 			return err
@@ -161,7 +195,7 @@ func processValidation(ruleType string, ruleValue string, value reflect.Value) e
 		if !regexp.MatchString(value.String()) {
 			return ErrIncorrectValueByRegexp
 		}
-	case "in":
+	case inArrayRule:
 		ruleValues := strings.Split(ruleValue, ",")
 		if !inArray(value.String(), ruleValues) {
 			return ErrIncorrectValueOneOf

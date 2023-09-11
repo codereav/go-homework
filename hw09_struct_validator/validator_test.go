@@ -42,6 +42,9 @@ type (
 	Custom2 struct {
 		Any int `validate:"regexp"`
 	}
+	Custom3 struct {
+		Text string `validate:"min:30"`
+	}
 )
 
 func TestValidate(t *testing.T) {
@@ -57,23 +60,24 @@ func TestValidate(t *testing.T) {
 			},
 			expectedErr: ValidationErrors{
 				ValidationError{
-					Field: "Age",
-					Err:   ErrIncorrectMaxValue,
-					Param: "50",
+					Field:  "Age",
+					Err:    ErrIncorrectMaxValue,
+					Params: []interface{}{"50"},
 				},
 				ValidationError{
-					Field: "Email",
-					Err:   ErrIncorrectValueByRegexp,
-					Param: "^\\w+@\\w+\\.\\w+$",
+					Field:  "Email",
+					Err:    ErrIncorrectValueByRegexp,
+					Params: []interface{}{"^\\w+@\\w+\\.\\w+$"},
 				},
 				ValidationError{
-					Field: "Role",
-					Err:   ErrUnsupportedType,
+					Field:  "Role",
+					Err:    ErrUnsupportedType,
+					Params: []interface{}{"hw09structvalidator.UserRole"},
 				},
 				ValidationError{
-					Field: "Phones",
-					Err:   ErrIncorrectLength,
-					Param: "11",
+					Field:  "Phones",
+					Err:    ErrIncorrectLength,
+					Params: []interface{}{"11"},
 				},
 			},
 		},
@@ -94,9 +98,9 @@ func TestValidate(t *testing.T) {
 			},
 			expectedErr: ValidationErrors{
 				ValidationError{
-					Field: "Code",
-					Err:   ErrIncorrectValueOneOf,
-					Param: "200,404,500",
+					Field:  "Code",
+					Err:    ErrIncorrectValueOneOf,
+					Params: []interface{}{"200,404,500"},
 				},
 			},
 		},
@@ -104,9 +108,9 @@ func TestValidate(t *testing.T) {
 			in: Custom1{},
 			expectedErr: ValidationErrors{
 				ValidationError{
-					Field: "Any",
-					Err:   ErrUnsupportedRule,
-					Param: "anything",
+					Field:  "Any",
+					Err:    ErrIncompatibleRuleForType,
+					Params: []interface{}{"incorrectRule", "int"},
 				},
 			},
 		},
@@ -114,9 +118,19 @@ func TestValidate(t *testing.T) {
 			in: Custom2{},
 			expectedErr: ValidationErrors{
 				ValidationError{
-					Field: "Any",
-					Err:   ErrIncorrectValidationRule,
-					Param: "",
+					Field:  "Any",
+					Err:    ErrIncorrectValidationRule,
+					Params: []interface{}(nil),
+				},
+			},
+		},
+		{
+			in: Custom3{},
+			expectedErr: ValidationErrors{
+				ValidationError{
+					Field:  "Text",
+					Err:    ErrIncompatibleRuleForType,
+					Params: []interface{}{"min", "string"},
 				},
 			},
 		},
