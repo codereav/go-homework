@@ -1,3 +1,4 @@
+//go:build !bench
 // +build !bench
 
 package hw10programoptimization
@@ -35,5 +36,11 @@ func TestGetDomainStat(t *testing.T) {
 		result, err := GetDomainStat(bytes.NewBufferString(data), "unknown")
 		require.NoError(t, err)
 		require.Equal(t, DomainStat{}, result)
+	})
+
+	t.Run("find 'CAPS'", func(t *testing.T) {
+		result, err := GetDomainStat(bytes.NewBufferString(data), "GOV")
+		require.NoError(t, err)
+		require.Equal(t, DomainStat{"browsedrive.gov": 1}, result)
 	})
 }
