@@ -6,8 +6,6 @@ import (
 	"time"
 )
 
-const bufferSize = 4096
-
 type TelnetClient interface {
 	Connect() error
 	io.Closer
@@ -43,23 +41,13 @@ func (c *TnClient) Connect() error {
 }
 
 func (c *TnClient) Send() error {
-	buffer := make([]byte, bufferSize)
-	i, err := c.in.Read(buffer)
-	if err != nil {
-		return err
-	}
-	_, err = c.conn.Write(buffer[:i])
+	_, err := io.Copy(c.conn, c.in)
 
 	return err
 }
 
 func (c *TnClient) Receive() error {
-	buffer := make([]byte, bufferSize)
-	i, err := c.conn.Read(buffer)
-	if err != nil {
-		return err
-	}
-	_, err = c.out.Write(buffer[:i])
+	_, err := io.Copy(c.out, c.conn)
 
 	return err
 }

@@ -19,6 +19,10 @@ func main() {
 	flag.DurationVar(&timeout, "timeout", 10*time.Second, "Таймаут подключения")
 	flag.Parse()
 
+	if flag.NArg() < 2 {
+		log.Fatalf("Incorrect num of args. Example usage: %s [--timeout=10s] [host] [port]", os.Args[0])
+	}
+
 	host := flag.Arg(0)
 	port := flag.Arg(1)
 
@@ -32,7 +36,7 @@ func main() {
 		fmt.Fprintln(os.Stderr, err)
 		return
 	}
-	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT)
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT, os.Interrupt)
 	go receive(ctx, stop, client)
 	go send(ctx, stop, client)
 
