@@ -2,12 +2,15 @@ package main
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"net"
+	"os"
 	"sync"
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -61,5 +64,12 @@ func TestTelnetClient(t *testing.T) {
 		}()
 
 		wg.Wait()
+	})
+	t.Run("connection refused", func(t *testing.T) {
+		addr := "127.0.0.1:15012"
+		client := NewTelnetClient(addr, 1*time.Second, os.Stdin, os.Stdout)
+		err := client.Connect()
+		require.Error(t, err)
+		assert.Equal(t, fmt.Sprintf("dial tcp %s: connect: connection refused", addr), err.Error())
 	})
 }
