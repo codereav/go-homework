@@ -1,0 +1,10 @@
+
+logger:
+  level: info
+  path:
+database:
+  type: in_memory
+  dsn:
+server:
+  host:
+  port: 8080
