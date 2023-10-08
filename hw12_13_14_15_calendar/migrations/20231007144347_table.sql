@@ -1,6 +1,6 @@
 -- +goose Up
 -- +goose StatementBegin
-SELECT 'create table events (
+create table events (
                         id serial primary key,
                         owner bigint,
                         title text,
@@ -14,10 +14,9 @@ SELECT 'create table events (
 );
 create index owner_idx on events (owner);
 create index start_idx on events using btree (start_date, start_time);
-';
 -- +goose StatementEnd
 
 -- +goose Down
 -- +goose StatementBegin
-SELECT 'drop table events;';
+drop table events;
 -- +goose StatementEnd

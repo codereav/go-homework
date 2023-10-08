@@ -48,14 +48,18 @@ func (s *Storage) Close(ctx context.Context) error {
 }
 
 func (s *Storage) AddEvent(_ *storage.Event) error {
+	s.conn.Exec(context.Background(), "")
 	return nil
 }
+
 func (s *Storage) EditEvent(_ *storage.Event) error {
 	return nil
 }
+
 func (s *Storage) DeleteEvent(_ int) error {
 	return nil
 }
+
 func (s *Storage) ListEvents(_ time.Time, _ time.Time) ([]storage.Event, error) {
 	return nil, nil
 }

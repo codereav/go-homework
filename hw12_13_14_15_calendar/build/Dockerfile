@@ -9,7 +9,6 @@ WORKDIR ${CODE_DIR}
 # Кэшируем слои с модулями
 COPY go.mod .
 COPY go.sum .
-COPY .env .
 
 RUN go mod download
 

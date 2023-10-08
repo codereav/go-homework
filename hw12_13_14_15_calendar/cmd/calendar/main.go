@@ -3,10 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/codereav/go-homework/hw12_13_14_15_calendar/internal/logger"
-	sqlstorage "github.com/codereav/go-homework/hw12_13_14_15_calendar/internal/storage/sql"
-	"github.com/joho/godotenv"
-	"github.com/spf13/cobra"
 	"net"
 	"net/http"
 	"os"
@@ -15,10 +11,13 @@ import (
 	"time"
 
 	"github.com/codereav/go-homework/hw12_13_14_15_calendar/internal/app"
-	internalhttp "github.com/codereav/go-homework/hw12_13_14_15_calendar/internal/server/http"
-	memorystorage "github.com/codereav/go-homework/hw12_13_14_15_calendar/internal/storage/memory"
-	_ "github.com/joho/godotenv"
+	"github.com/codereav/go-homework/hw12_13_14_15_calendar/internal/logger"
+	"github.com/codereav/go-homework/hw12_13_14_15_calendar/internal/server/http"
+	"github.com/codereav/go-homework/hw12_13_14_15_calendar/internal/storage/memory"
+	"github.com/codereav/go-homework/hw12_13_14_15_calendar/internal/storage/sql"
+	"github.com/joho/godotenv"
 	"github.com/pkg/errors"
+	"github.com/spf13/cobra"
 )
 
 var configFile string

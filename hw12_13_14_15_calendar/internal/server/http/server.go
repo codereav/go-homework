@@ -22,8 +22,7 @@ type Logger interface {
 	Debug(msg string)
 }
 
-type Application interface {
-}
+type Application interface{}
 
 func NewServer(logger Logger, app Application, address string) *Server {
 	return &Server{

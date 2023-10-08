@@ -32,7 +32,7 @@ func New(level string, path string) *Logger {
 
 	var logFile io.Writer
 	logfilePath := fmt.Sprintf("%slogfile-%s.log", path, time.DateOnly)
-	logFile, err = os.OpenFile(logfilePath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0666)
+	logFile, err = os.OpenFile(logfilePath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0o666)
 	if err != nil {
 		logger.Info(errors.Wrap(err, "fail on log file opening, will use standard output"))
 	} else {
