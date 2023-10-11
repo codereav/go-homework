@@ -65,7 +65,6 @@ func (s *Storage) DeleteEvent(eventID int) error {
 func (s *Storage) ListEvents(from time.Time, to time.Time) ([]storage.Event, error) {
 	var result []storage.Event
 	for _, event := range s.events {
-		event := event
 		if event.StartDate.After(from) && event.StartDate.Before(to) {
 			result = append(result, *event)
 		}
