@@ -1,0 +1,89 @@
+syntax = "proto3";
+
+package event;
+
+option go_package = "./../event/;event";
+
+import "google/annotations.proto";
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/duration.proto";
+
+service EventService {
+  rpc AddEvent(AddEventRequest) returns (AddEventSuccessResponse) {
+    option (google.api.http) = {
+      post: "/api/events/add"
+    };
+  };
+  rpc EditEvent(EventRequest) returns (EditEventSuccessResponse) {
+    option (google.api.http) = {
+      put: "/api/events/edit"
+    };
+  };
+  rpc DeleteEvent(DeleteEventRequest) returns (DeleteEventSuccessResponse) {
+    option (google.api.http) = {
+      delete: "/api/events/{id}"
+    };
+  };
+  rpc ListEvents(ListEventsRequest) returns (ListEventsSuccessResponse) {
+    option (google.api.http) = {
+      get: "/api/events/list"
+    };
+  };
+}
+
+message EventRequest {
+  int64 id = 1;
+  string title = 2;
+  string descr = 3;
+  int64 ownerId = 4;
+  google.protobuf.Timestamp startDate = 5;
+  google.protobuf.Timestamp endDate = 6;
+  google.protobuf.Duration remindFor = 7;
+  google.protobuf.Timestamp deletedAt = 8;
+}
+
+message EventResponse {
+  int64 id = 1;
+  string title = 2;
+  string descr = 3;
+  int64 ownerId = 4;
+  string startDate = 5;
+  string endDate = 6;
+  string remindFor = 7;
+  string deletedAt = 8;
+}
+
+message AddEventRequest {
+  string title = 2;
+  string descr = 3;
+  int64 ownerId = 4;
+  google.protobuf.Timestamp startDate = 5;
+  google.protobuf.Timestamp endDate = 6;
+  optional google.protobuf.Duration remindFor = 7;
+}
+
+message AddEventSuccessResponse{
+  string status = 7;
+  int64 id = 8;
+}
+
+message EditEventSuccessResponse{
+  string status = 1;
+}
+
+message DeleteEventRequest{
+  int64 id = 1;
+}
+
+message DeleteEventSuccessResponse{
+  string status = 2;
+}
+
+message ListEventsRequest {
+  google.protobuf.Timestamp dateFrom = 1;
+  google.protobuf.Timestamp dateTo = 2;
+}
+
+message ListEventsSuccessResponse {
+  repeated EventResponse events = 1;
+}

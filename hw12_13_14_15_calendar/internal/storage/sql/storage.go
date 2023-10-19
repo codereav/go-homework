@@ -51,7 +51,7 @@ func (s *Storage) Close(ctx context.Context) error {
 func (s *Storage) AddEvent(event *storage.Event) error {
 	query := `insert into events(title, descr, start_date, end_date)
  values($1, $2, $3, $4) returning id`
-	var eventID int
+	var eventID int64
 	err := s.conn.QueryRow(
 		context.Background(),
 		query,
@@ -70,7 +70,7 @@ func (s *Storage) AddEvent(event *storage.Event) error {
 
 func (s *Storage) EditEvent(event *storage.Event) error {
 	query := `update events SET title=$1, descr=$2, start_date=$3, end_date=$4
- WHERE id=$5`
+ WHERE id=$5 AND deleted_at IS NULL`
 	_, err := s.conn.Exec(
 		context.Background(),
 		query,
@@ -83,8 +83,8 @@ func (s *Storage) EditEvent(event *storage.Event) error {
 	return err
 }
 
-func (s *Storage) DeleteEvent(id int) error {
-	query := `delete from eventsWHERE id=$1`
+func (s *Storage) DeleteEvent(id int64) error {
+	query := `UPDATE events SET deleted_at=CURRENT_TIMESTAMP WHERE id=$1 AND deleted_at IS NOT NULL`
 	_, err := s.conn.Exec(
 		context.Background(),
 		query,
@@ -94,7 +94,7 @@ func (s *Storage) DeleteEvent(id int) error {
 	return err
 }
 
-func (s *Storage) ListEvents(from time.Time, to time.Time) ([]storage.Event, error) {
+func (s *Storage) ListEvents(from time.Time, to time.Time) ([]*storage.Event, error) {
 	query := `
  select id, title, descr, start_date, end_date
  from events
@@ -105,9 +105,11 @@ func (s *Storage) ListEvents(from time.Time, to time.Time) ([]storage.Event, err
 		return nil, err
 	}
 	defer rows.Close()
-	var result []storage.Event
+
+	var result []*storage.Event
+
 	for rows.Next() {
-		event := storage.Event{}
+		event := &storage.Event{}
 		if err := rows.Scan(&event.ID, &event.Title, &event.Descr, &event.StartDate, &event.EndDate); err != nil {
 			return nil, err
 		}

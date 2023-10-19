@@ -11,8 +11,8 @@ import (
 
 type Storage struct {
 	app.Storage
-	events      map[int]*storage.Event
-	lastEventID int
+	events      map[int64]*storage.Event
+	lastEventID int64
 	mu          sync.RWMutex
 }
 
@@ -21,7 +21,8 @@ func New() *Storage {
 }
 
 func (s *Storage) Connect(_ context.Context) error {
-	s.events = make(map[int]*storage.Event)
+	s.events = make(map[int64]*storage.Event)
+
 	return nil
 }
 
@@ -39,34 +40,44 @@ func (s *Storage) AddEvent(event *storage.Event) error {
 	event.ID = s.lastEventID + 1
 	s.events[event.ID] = event
 	s.lastEventID = event.ID
+
 	return nil
 }
 
 func (s *Storage) EditEvent(event *storage.Event) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	_, ok := s.events[event.ID]
-	if !ok {
+
+	e, ok := s.events[event.ID]
+	if !ok || e.DeletedAt != nil {
 		return app.ErrNotExists
 	}
+
 	s.events[event.ID] = event
 
 	return nil
 }
 
-func (s *Storage) DeleteEvent(eventID int) error {
+func (s *Storage) DeleteEvent(eventID int64) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	delete(s.events, eventID)
+
+	e, ok := s.events[eventID]
+	if !ok || e.DeletedAt != nil {
+		return app.ErrNotExists
+	}
+	now := time.Now()
+	s.events[eventID].DeletedAt = &now
 
 	return nil
 }
 
-func (s *Storage) ListEvents(from time.Time, to time.Time) ([]storage.Event, error) {
-	var result []storage.Event
+func (s *Storage) ListEvents(from time.Time, to time.Time) ([]*storage.Event, error) {
+	var result []*storage.Event
+
 	for _, event := range s.events {
-		if event.StartDate.After(from) && event.StartDate.Before(to) {
-			result = append(result, *event)
+		if event.StartDate.After(from) && event.StartDate.Before(to) && event.DeletedAt == nil {
+			result = append(result, event)
 		}
 	}
 

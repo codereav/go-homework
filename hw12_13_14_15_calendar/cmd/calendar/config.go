@@ -13,7 +13,10 @@ import (
 type Config struct {
 	Logger   LoggerConf
 	Database DatabaseConf
-	Server   ServerConf
+	Server   struct {
+		HTTP ServerConf
+		Grpc ServerConf
+	}
 }
 
 type LoggerConf struct {

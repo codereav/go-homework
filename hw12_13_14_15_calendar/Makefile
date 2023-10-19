@@ -23,7 +23,7 @@ build-postgres:
 		-f build/postgres/Dockerfile .
 
 run-img: build-img build-postgres run-postgres
-	docker run -p 8080:8080 --name=$(APP_IMG) $(APP_IMG)
+	docker run -p 8080:8080 -p 9090:9090 --name=$(APP_IMG) $(APP_IMG)
 
 run-postgres:
 	docker run -d -v pgdata:/var/lib/postgresql/data -p 5432:5432 --name=$(POSTGRES_IMG) $(POSTGRES_IMG)
@@ -45,3 +45,5 @@ lint: install-lint-deps
 migrate:
 	goose -dir="./migrations" postgres "$(CONFIG_DATABASE_DSN)" up
 
+generate:
+	buf generate

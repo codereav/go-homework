@@ -7,11 +7,13 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"sync"
 	"syscall"
 	"time"
 
 	"github.com/codereav/go-homework/hw12_13_14_15_calendar/internal/app"
 	"github.com/codereav/go-homework/hw12_13_14_15_calendar/internal/logger"
+	internalgrpc "github.com/codereav/go-homework/hw12_13_14_15_calendar/internal/server/grpc"
 	"github.com/codereav/go-homework/hw12_13_14_15_calendar/internal/server/http"
 	"github.com/codereav/go-homework/hw12_13_14_15_calendar/internal/storage/memory"
 	"github.com/codereav/go-homework/hw12_13_14_15_calendar/internal/storage/sql"
@@ -68,8 +70,12 @@ func run(ctx context.Context) error {
 			}(storage, ctx)
 
 			calendar := app.New(log, storage)
-			addr := net.JoinHostPort(config.Server.Host, config.Server.Port)
-			server := internalhttp.NewServer(log, calendar, addr)
+
+			httpAddr := net.JoinHostPort(config.Server.HTTP.Host, config.Server.HTTP.Port)
+			httpServer := internalhttp.NewServer(log, calendar, httpAddr)
+
+			grpcAddr := net.JoinHostPort(config.Server.Grpc.Host, config.Server.Grpc.Port)
+			grpcServer := internalgrpc.NewServer(log, calendar, grpcAddr)
 
 			go func() {
 				<-ctx.Done()
@@ -77,18 +83,33 @@ func run(ctx context.Context) error {
 				ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
 				defer cancel()
 
-				if err := server.Stop(ctx); err != nil {
+				if err := httpServer.Stop(ctx); err != nil {
 					log.Error(errors.Wrap(err, "failed to stop http server").Error())
-					return
+				}
+				if err := grpcServer.Stop(ctx); err != nil {
+					log.Error(errors.Wrap(err, "failed to stop grpc server").Error())
 				}
 			}()
 
 			log.Info("calendar is running...")
 
-			if err := server.Start(ctx); err != nil && !errors.Is(err, http.ErrServerClosed) {
-				log.Error(errors.Wrap(err, "failed to start http server").Error())
-				return
-			}
+			wg := &sync.WaitGroup{}
+			wg.Add(2)
+			go func() {
+				defer wg.Done()
+				if err := httpServer.Start(ctx); err != nil && !errors.Is(err, http.ErrServerClosed) {
+					log.Error(errors.Wrap(err, "failed to start http server").Error())
+					return
+				}
+			}()
+			go func() {
+				defer wg.Done()
+				if err := grpcServer.Start(ctx); err != nil && !errors.Is(err, http.ErrServerClosed) {
+					log.Error(errors.Wrap(err, "failed to start http server").Error())
+					return
+				}
+			}()
+			wg.Wait()
 		},
 	}
 	versionCmd := &cobra.Command{

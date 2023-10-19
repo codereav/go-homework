@@ -6,12 +6,14 @@ import (
 	"os"
 	"time"
 
+	"github.com/codereav/go-homework/hw12_13_14_15_calendar/internal/app"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/sirupsen/logrus/hooks/writer"
 )
 
 type Logger struct {
+	app.Logger
 	logger *logrus.Logger
 }
 
