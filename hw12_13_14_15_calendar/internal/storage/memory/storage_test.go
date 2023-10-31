@@ -129,7 +129,7 @@ func TestStorage(t *testing.T) { //nolint:funlen
 	})
 
 	t.Run("Test DeleteEvent 1", func(t *testing.T) {
-		eventsBefore, err := s.ListEvents(time.Now(), time.Now().Add(11*time.Hour))
+		eventsBefore, err := s.ListEvents(time.Now(), time.Now().Add(10*time.Hour))
 		require.NoError(t, err)
 		err = s.DeleteEvent(1)
 		require.NoError(t, err)
@@ -142,9 +142,7 @@ func TestStorage(t *testing.T) { //nolint:funlen
 
 	t.Run("Test DeleteEvent 2", func(t *testing.T) {
 		err = s.DeleteEvent(1)
-		require.NoError(t, err)
-		err = s.DeleteEvent(1)
-		require.NoError(t, err)
+		require.Error(t, err)
 	})
 
 	t.Run("Test EditEvent 1", func(t *testing.T) {

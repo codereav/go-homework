@@ -3,6 +3,8 @@ package internalhttp
 import (
 	"fmt"
 	"net/http"
+
+	"github.com/codereav/go-homework/hw12_13_14_15_calendar/internal/server"
 )
 
 type ResponseWriterWrapper struct {
@@ -22,7 +24,7 @@ func NewResponseWriterWrapper(w http.ResponseWriter) *ResponseWriterWrapper {
 	}
 }
 
-func loggingMiddleware(log Logger, next http.Handler) http.Handler {
+func loggingMiddleware(log server.Logger, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		rww := NewResponseWriterWrapper(w)
 		next.ServeHTTP(rww, r)

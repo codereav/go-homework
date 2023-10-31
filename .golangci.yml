@@ -3,6 +3,8 @@ run:
   build-tags:
     - bench
     - !bench
+  skip-dirs:
+    - .*/generated/.*
 
 linters-settings:
   funlen:

@@ -5,26 +5,23 @@ import (
 	"fmt"
 	"net/http"
 	"time"
+
+	"github.com/codereav/go-homework/hw12_13_14_15_calendar/internal/generated/event"
+	"github.com/codereav/go-homework/hw12_13_14_15_calendar/internal/server"
+	internalgrpc "github.com/codereav/go-homework/hw12_13_14_15_calendar/internal/server/grpc"
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"github.com/pkg/errors"
 )
 
 type Server struct {
-	logger  Logger
-	app     Application
+	logger  server.Logger
+	app     server.Application
 	address string
 	timeout time.Duration
 	server  *http.Server
 }
 
-type Logger interface {
-	Error(msg string)
-	Warning(msg string)
-	Info(msg string)
-	Debug(msg string)
-}
-
-type Application interface{}
-
-func NewServer(logger Logger, app Application, address string) *Server {
+func NewServer(logger server.Logger, app server.Application, address string) *Server {
 	return &Server{
 		logger:  logger,
 		app:     app,
@@ -46,13 +43,21 @@ func (s *Server) Start(ctx context.Context) error {
 			}
 		})
 
+		runtimeMux := runtime.NewServeMux()
+		err = s.registerGRPCGatewayAPIHandlers(ctx, runtimeMux)
+		if err != nil {
+			return errors.Wrap(err, "registering grpc-gateway api handlers")
+		}
+		mux.Handle("/api/", runtimeMux)
+
 		s.server = &http.Server{
 			Addr:        s.address,
 			Handler:     loggingMiddleware(s.logger, mux),
 			ReadTimeout: s.timeout,
 		}
 
-		s.logger.Info(fmt.Sprintf("server start on address %s", s.address))
+		s.logger.Info(fmt.Sprintf("http server start on address %s", s.address))
+
 		return s.server.ListenAndServe()
 	}
 }
@@ -64,4 +69,16 @@ func (s *Server) Stop(ctx context.Context) error {
 	default:
 		return s.server.Close()
 	}
+}
+
+func (s *Server) registerGRPCGatewayAPIHandlers(ctx context.Context, runtimeMux *runtime.ServeMux) error {
+	err := event.RegisterEventServiceHandlerServer(
+		ctx,
+		runtimeMux,
+		&internalgrpc.EventServer{App: s.app, Logger: s.logger})
+	if err != nil {
+		return errors.Wrap(err, "registering EventServer for grpc-gateway at http server")
+	}
+
+	return nil
 }
