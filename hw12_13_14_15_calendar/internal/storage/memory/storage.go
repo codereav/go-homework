@@ -3,6 +3,7 @@ package memorystorage
 import (
 	"context"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/codereav/go-homework/hw12_13_14_15_calendar/internal/app"
@@ -10,7 +11,6 @@ import (
 )
 
 type Storage struct {
-	app.Storage
 	events      map[int64]*storage.Event
 	lastEventID int64
 	mu          sync.RWMutex
@@ -82,4 +82,48 @@ func (s *Storage) ListEvents(from time.Time, to time.Time) ([]*storage.Event, er
 	}
 
 	return result, nil
+}
+
+func (s *Storage) ListNotSentEvents(from time.Time) ([]*storage.Event, error) {
+	var result []*storage.Event
+
+	now := time.Now()
+	for _, event := range s.events {
+		if event.StartDate.After(from) && !event.NotifySent && event.DeletedAt == nil && event.StartDate != nil &&
+			now.Before(*event.StartDate) && event.RemindFor != nil && event.RemindFor.Before(now) {
+			result = append(result, event)
+		}
+	}
+
+	return result, nil
+}
+
+func (s *Storage) MarkEventsAsSent(eventIDs []int64) (int64, error) {
+	var cnt int64
+
+	for _, event := range s.events {
+		for _, id := range eventIDs {
+			if event.ID == id {
+				event.NotifySent = true
+				atomic.AddInt64(&cnt, 1)
+			}
+		}
+	}
+
+	return cnt, nil
+}
+
+func (s *Storage) DeleteOldEvents(oldDate time.Time) (int64, error) {
+	var cnt int64
+
+	now := time.Now()
+
+	for _, event := range s.events {
+		if event.StartDate.Before(oldDate) {
+			event.DeletedAt = &now
+			atomic.AddInt64(&cnt, 1)
+		}
+	}
+
+	return cnt, nil
 }

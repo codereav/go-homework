@@ -6,15 +6,21 @@ import (
 	"os"
 	"time"
 
-	"github.com/codereav/go-homework/hw12_13_14_15_calendar/internal/app"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/sirupsen/logrus/hooks/writer"
 )
 
 type Logger struct {
-	app.Logger
+	Log
 	logger *logrus.Logger
+}
+
+type Log interface {
+	Error(msg string)
+	Warning(msg string)
+	Info(msg string)
+	Debug(msg string)
 }
 
 func New(level string, path string) *Logger {

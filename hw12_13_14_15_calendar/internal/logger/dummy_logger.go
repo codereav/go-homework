@@ -1,9 +1,7 @@
 package logger
 
-import "github.com/codereav/go-homework/hw12_13_14_15_calendar/internal/app"
-
 type DummyLogger struct {
-	app.Logger
+	Logger
 }
 
 func (l *DummyLogger) Error(_ string)   {}

@@ -3,20 +3,25 @@ package main
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/spf13/viper"
 )
 
-// При желании конфигурацию можно вынести в internal/config.
-// Организация конфига в main принуждает нас сужать API компонентов, использовать
-// при их конструировании только необходимые параметры, а также уменьшает вероятность циклической зависимости.
 type Config struct {
-	Logger   LoggerConf
-	Database DatabaseConf
-	Server   struct {
+	Scheduler SchedulerConf
+	Logger    LoggerConf
+	Database  DatabaseConf
+	Server    struct {
 		HTTP ServerConf
 		Grpc ServerConf
 	}
+	Rabbitmq RabbitmqConf
+}
+
+type SchedulerConf struct {
+	PeriodSec int16
+	OldDate   time.Time
 }
 
 type LoggerConf struct {
@@ -27,6 +32,15 @@ type LoggerConf struct {
 type DatabaseConf struct {
 	Type string
 	Dsn  string
+}
+
+type RabbitmqConf struct {
+	Dsn          string
+	Exchange     string
+	ExchangeType string
+	Queue        string
+	Key          string
+	ConsumerTag  string
 }
 
 type ServerConf struct {

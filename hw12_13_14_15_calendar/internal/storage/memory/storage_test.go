@@ -11,6 +11,8 @@ import (
 )
 
 func TestStorage(t *testing.T) { //nolint:funlen
+	startDate := time.Now().Add(3 * time.Hour)
+	endDate := time.Now().Add(6 * time.Hour)
 	forAdd := []struct {
 		in          storage.Event
 		expectedErr error
@@ -19,9 +21,8 @@ func TestStorage(t *testing.T) { //nolint:funlen
 			in: storage.Event{
 				Title:     "Test title1",
 				Descr:     "descr",
-				StartDate: time.Now().Add(3 * time.Hour),
-				EndDate:   time.Now().Add(6 * time.Hour),
-				RemindFor: 1 * time.Hour,
+				StartDate: &startDate,
+				EndDate:   &endDate,
 			},
 			expectedErr: nil,
 		},
@@ -29,9 +30,8 @@ func TestStorage(t *testing.T) { //nolint:funlen
 			in: storage.Event{
 				Title:     "Test title2",
 				Descr:     "descr",
-				StartDate: time.Now().Add(3 * time.Hour),
-				EndDate:   time.Now().Add(6 * time.Hour),
-				RemindFor: 1 * time.Hour,
+				StartDate: &startDate,
+				EndDate:   &endDate,
 			},
 			expectedErr: nil,
 		},
@@ -39,9 +39,8 @@ func TestStorage(t *testing.T) { //nolint:funlen
 			in: storage.Event{
 				Title:     "Test title3",
 				Descr:     "descr",
-				StartDate: time.Now().Add(3 * time.Hour),
-				EndDate:   time.Now().Add(6 * time.Hour),
-				RemindFor: 1 * time.Hour,
+				StartDate: &startDate,
+				EndDate:   &endDate,
 			},
 			expectedErr: nil,
 		},
@@ -49,9 +48,8 @@ func TestStorage(t *testing.T) { //nolint:funlen
 			in: storage.Event{
 				Title:     "Test title4",
 				Descr:     "descr",
-				StartDate: time.Now().Add(3 * time.Hour),
-				EndDate:   time.Now().Add(6 * time.Hour),
-				RemindFor: 1 * time.Hour,
+				StartDate: &startDate,
+				EndDate:   &endDate,
 			},
 			expectedErr: nil,
 		},
@@ -59,9 +57,8 @@ func TestStorage(t *testing.T) { //nolint:funlen
 			in: storage.Event{
 				Title:     "Test title5",
 				Descr:     "descr",
-				StartDate: time.Now().Add(3 * time.Hour),
-				EndDate:   time.Now().Add(6 * time.Hour),
-				RemindFor: 1 * time.Hour,
+				StartDate: &startDate,
+				EndDate:   &endDate,
 			},
 			expectedErr: nil,
 		},
@@ -69,9 +66,8 @@ func TestStorage(t *testing.T) { //nolint:funlen
 			in: storage.Event{
 				Title:     "Test title6",
 				Descr:     "descr",
-				StartDate: time.Now().Add(3 * time.Hour),
-				EndDate:   time.Now().Add(6 * time.Hour),
-				RemindFor: 1 * time.Hour,
+				StartDate: &startDate,
+				EndDate:   &endDate,
 			},
 			expectedErr: nil,
 		},
@@ -79,9 +75,8 @@ func TestStorage(t *testing.T) { //nolint:funlen
 			in: storage.Event{
 				Title:     "Test title7",
 				Descr:     "descr",
-				StartDate: time.Now().Add(3 * time.Hour),
-				EndDate:   time.Now().Add(6 * time.Hour),
-				RemindFor: 1 * time.Hour,
+				StartDate: &startDate,
+				EndDate:   &endDate,
 			},
 			expectedErr: nil,
 		},
@@ -117,15 +112,17 @@ func TestStorage(t *testing.T) { //nolint:funlen
 
 	t.Run("Test ListEvents 2", func(t *testing.T) {
 		var err error
+		startDate := time.Now().Add(3 * time.Hour)
+		endDate := time.Now().Add(6 * time.Hour)
 		err = s.AddEvent(&storage.Event{
 			Title:     "listEvents 2",
-			StartDate: time.Now().Add(10 * time.Hour),
-			EndDate:   time.Now().Add(12 * time.Hour),
+			StartDate: &startDate,
+			EndDate:   &endDate,
 		})
 		require.NoError(t, err)
-		events, err := s.ListEvents(time.Now().Add(9*time.Hour), time.Now().Add(11*time.Hour))
+		events, err := s.ListEvents(time.Now().Add(1*time.Hour), time.Now().Add(11*time.Hour))
 		require.NoError(t, err)
-		require.Equal(t, 1, len(events))
+		require.Equal(t, 8, len(events))
 	})
 
 	t.Run("Test DeleteEvent 1", func(t *testing.T) {
@@ -149,8 +146,8 @@ func TestStorage(t *testing.T) { //nolint:funlen
 		var err error
 		event := storage.Event{
 			Title:     "editEvent 1",
-			StartDate: time.Now().Add(10 * time.Hour),
-			EndDate:   time.Now().Add(12 * time.Hour),
+			StartDate: &startDate,
+			EndDate:   &endDate,
 		}
 		err = s.AddEvent(&event)
 		require.NoError(t, err)
@@ -161,8 +158,8 @@ func TestStorage(t *testing.T) { //nolint:funlen
 			ID:        event.ID,
 			Title:     "editEvent 2",
 			Descr:     "Test description 2",
-			StartDate: time.Now().Add(10 * time.Hour),
-			EndDate:   time.Now().Add(12 * time.Hour),
+			StartDate: &startDate,
+			EndDate:   &endDate,
 		}
 		err = s.EditEvent(&newEvent)
 		require.NoError(t, err)
@@ -178,5 +175,20 @@ func TestStorage(t *testing.T) { //nolint:funlen
 			}
 		}
 		require.Equal(t, true, eventFound)
+	})
+
+	t.Run("Test List Not sent Events", func(t *testing.T) {
+		var err error
+		remindFor := time.Now().Add(-12 * time.Hour)
+		err = s.AddEvent(&storage.Event{
+			Title:     "listNotSentEvents 2",
+			StartDate: &startDate,
+			EndDate:   &endDate,
+			RemindFor: &remindFor,
+		})
+		require.NoError(t, err)
+		events, err := s.ListNotSentEvents(time.Now().AddDate(0, 0, -3))
+		require.NoError(t, err)
+		require.Equal(t, 1, len(events))
 	})
 }
