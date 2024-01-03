@@ -1,0 +1,10 @@
+logger:
+  level: info
+  path:
+rabbitmq:
+  dsn: amqp://guest:guest@localhost:5672/
+  exchange: calendar-exchange
+  exchangeType: topic
+  queue: notify-queue
+  key: notify-key
+  consumerTag: notify-tag

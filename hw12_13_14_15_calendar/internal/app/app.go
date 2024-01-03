@@ -4,23 +4,17 @@ import (
 	"context"
 	"time"
 
+	"github.com/codereav/go-homework/hw12_13_14_15_calendar/internal/logger"
 	"github.com/codereav/go-homework/hw12_13_14_15_calendar/internal/storage"
 	"github.com/pkg/errors"
 )
 
 type App struct {
-	Logger  Logger
+	Logger  logger.Log
 	Storage Storage
 }
 
 var ErrNotExists = errors.New("record is not exists")
-
-type Logger interface {
-	Error(msg string)
-	Warning(msg string)
-	Info(msg string)
-	Debug(msg string)
-}
 
 type Storage interface {
 	Connect(ctx context.Context) error
@@ -31,7 +25,7 @@ type Storage interface {
 	ListEvents(from time.Time, to time.Time) ([]*storage.Event, error)
 }
 
-func New(logger Logger, storage Storage) *App {
+func New(logger logger.Log, storage Storage) *App {
 	return &App{
 		Logger:  logger,
 		Storage: storage,
@@ -43,9 +37,9 @@ func (a *App) CreateEvent(
 	title string,
 	descr string,
 	ownerID int64,
-	startDate time.Time,
-	endDate time.Time,
-	remindFor time.Duration,
+	startDate *time.Time,
+	endDate *time.Time,
+	remindFor *time.Time,
 ) (*int64, error) {
 	select {
 	case <-ctx.Done():
@@ -74,9 +68,9 @@ func (a *App) EditEvent(
 	title string,
 	descr string,
 	ownerID int64,
-	startDate time.Time,
-	endDate time.Time,
-	remindFor time.Duration,
+	startDate *time.Time,
+	endDate *time.Time,
+	remindFor *time.Time,
 ) error {
 	select {
 	case <-ctx.Done():

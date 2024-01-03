@@ -82,7 +82,7 @@ func (x *Http) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use HTTP.ProtoReflect.Descriptor instead.
+// Deprecated: Use Http.ProtoReflect.Descriptor instead.
 func (*Http) Descriptor() ([]byte, []int) {
 	return file_google_http_proto_rawDescGZIP(), []int{0}
 }
@@ -694,12 +694,12 @@ func file_google_http_proto_rawDescGZIP() []byte {
 
 var file_google_http_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
 var file_google_http_proto_goTypes = []interface{}{
-	(*Http)(nil),              // 0: google.api.HTTP
+	(*Http)(nil),              // 0: google.api.Http
 	(*HttpRule)(nil),          // 1: google.api.HttpRule
 	(*CustomHttpPattern)(nil), // 2: google.api.CustomHttpPattern
 }
 var file_google_http_proto_depIdxs = []int32{
-	1, // 0: google.api.HTTP.rules:type_name -> google.api.HttpRule
+	1, // 0: google.api.Http.rules:type_name -> google.api.HttpRule
 	2, // 1: google.api.HttpRule.custom:type_name -> google.api.CustomHttpPattern
 	1, // 2: google.api.HttpRule.additional_bindings:type_name -> google.api.HttpRule
 	3, // [3:3] is the sub-list for method output_type

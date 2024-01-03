@@ -1,0 +1,23 @@
+scheduler:
+  PeriodSec: 10
+  oldDate: 2023-01-01 12:00:00 #Дата, до которой считаем события устаревшими
+logger:
+  level: info
+  path:
+database:
+  type: sql
+  dsn:
+rabbitmq:
+  dsn: amqp://guest:guest@localhost:5672/
+  exchange: calendar-exchange
+  exchangeType: topic
+  queue: notify-queue
+  key: notify-key
+  consumerTag: notify-tag
+server:
+  http:
+    host:
+    port: 8080
+  grpc:
+    host:
+    port: 9090

@@ -7,16 +7,9 @@ import (
 	"github.com/spf13/viper"
 )
 
-// При желании конфигурацию можно вынести в internal/config.
-// Организация конфига в main принуждает нас сужать API компонентов, использовать
-// при их конструировании только необходимые параметры, а также уменьшает вероятность циклической зависимости.
 type Config struct {
 	Logger   LoggerConf
-	Database DatabaseConf
-	Server   struct {
-		HTTP ServerConf
-		Grpc ServerConf
-	}
+	Rabbitmq RabbitmqConf
 }
 
 type LoggerConf struct {
@@ -24,14 +17,13 @@ type LoggerConf struct {
 	Path  string
 }
 
-type DatabaseConf struct {
-	Type string
-	Dsn  string
-}
-
-type ServerConf struct {
-	Host string
-	Port string
+type RabbitmqConf struct {
+	Dsn          string
+	Exchange     string
+	ExchangeType string
+	Queue        string
+	Key          string
+	ConsumerTag  string
 }
 
 func NewConfig(configFilePath string) *Config {

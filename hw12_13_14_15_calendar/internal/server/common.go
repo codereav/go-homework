@@ -20,9 +20,9 @@ type Application interface {
 		title string,
 		descr string,
 		ownerID int64,
-		startDate time.Time,
-		endDate time.Time,
-		remindFor time.Duration,
+		startDate *time.Time,
+		endDate *time.Time,
+		remindFor *time.Time,
 	) (*int64, error)
 	EditEvent(
 		ctx context.Context,
@@ -30,9 +30,9 @@ type Application interface {
 		title string,
 		descr string,
 		ownerID int64,
-		startDate time.Time,
-		endDate time.Time,
-		remindFor time.Duration,
+		startDate *time.Time,
+		endDate *time.Time,
+		remindFor *time.Time,
 	) error
 	DeleteEvent(
 		ctx context.Context,

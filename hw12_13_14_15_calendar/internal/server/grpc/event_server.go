@@ -23,14 +23,17 @@ func (s *EventServer) AddEvent(ctx context.Context, r *event.AddEventRequest) (*
 		return nil, errors.New("context done triggered when AddEvent call - operation failed")
 	default:
 		s.Logger.Info("AddEvent method called")
+		startDate := r.StartDate.AsTime()
+		endDate := r.EndDate.AsTime()
+		remindFor := r.RemindFor.AsTime()
 		id, err := s.App.CreateEvent(
 			ctx,
 			r.Title,
 			r.Descr,
 			r.OwnerId,
-			r.StartDate.AsTime(),
-			r.EndDate.AsTime(),
-			r.RemindFor.AsDuration(),
+			&startDate,
+			&endDate,
+			&remindFor,
 		)
 		if err != nil {
 			s.Logger.Error(err.Error())
@@ -51,6 +54,9 @@ func (s *EventServer) EditEvent(ctx context.Context, r *event.EventRequest) (*ev
 	case <-ctx.Done():
 		return nil, errors.New("context done triggered when EditEvent call - operation failed")
 	default:
+		startDate := r.StartDate.AsTime()
+		endDate := r.EndDate.AsTime()
+		remindFor := r.RemindFor.AsTime()
 		s.Logger.Info("EditEvent method called")
 		err := s.App.EditEvent(
 			ctx,
@@ -58,9 +64,9 @@ func (s *EventServer) EditEvent(ctx context.Context, r *event.EventRequest) (*ev
 			r.GetTitle(),
 			r.GetDescr(),
 			r.GetOwnerId(),
-			r.StartDate.AsTime(),
-			r.EndDate.AsTime(),
-			r.RemindFor.AsDuration(),
+			&startDate,
+			&endDate,
+			&remindFor,
 		)
 		if err != nil {
 			if errors.Is(err, app.ErrNotExists) {

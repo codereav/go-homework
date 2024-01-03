@@ -38,7 +38,7 @@ message EventRequest {
   int64 ownerId = 4;
   google.protobuf.Timestamp startDate = 5;
   google.protobuf.Timestamp endDate = 6;
-  google.protobuf.Duration remindFor = 7;
+  google.protobuf.Timestamp remindFor = 7;
   google.protobuf.Timestamp deletedAt = 8;
 }
 
@@ -59,7 +59,7 @@ message AddEventRequest {
   int64 ownerId = 4;
   google.protobuf.Timestamp startDate = 5;
   google.protobuf.Timestamp endDate = 6;
-  optional google.protobuf.Duration remindFor = 7;
+  optional google.protobuf.Timestamp remindFor = 7;
 }
 
 message AddEventSuccessResponse{

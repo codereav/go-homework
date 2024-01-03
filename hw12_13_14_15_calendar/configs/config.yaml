@@ -3,7 +3,7 @@ logger:
   level: info
   path:
 database:
-  type: in_memory
+  type: sql
   dsn:
 server:
   http:

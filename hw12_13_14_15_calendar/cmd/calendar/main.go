@@ -120,7 +120,6 @@ func run(ctx context.Context) error {
 		},
 	}
 	rootCmd.AddCommand(versionCmd)
-
 	rootCmd.PersistentFlags().StringVarP(&configFile, "config", "c", "/etc/calendar/config.yaml", "Path to config file")
 	err := rootCmd.PersistentFlags().Parse(os.Args)
 	if err != nil {
